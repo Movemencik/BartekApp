@@ -1,0 +1,46 @@
+﻿@page "/DeliveryPage"
+@using BartekApp.Data
+@using BartekApp.Enums
+@using BartekApp.Models
+@inject TransactionService TransactionService
+@inject NavigationManager Navigation
+
+<div class="container mt-3">
+    <h2 class="mb-4">Dodaj przychód - Dowozy</h2>
+    
+    <EditForm Model="@transaction" OnValidSubmit="@AddIncome">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+        
+        <div class="mb-3">
+            <label for="amount" class="form-label">Kwota *</label>
+            <InputNumber class="form-control" id="amount" @bind-Value="transaction.Amount" step="0.01" min="0" />
+            <ValidationMessage For="@(() => transaction.Amount)" />
+        </div>
+        
+        <button type="submit" class="btn btn-primary">Dodaj przychód</button>
+        <a href="/" class="btn btn-secondary ms-2">Wróć</a>
+    </EditForm>
+    
+    @if (showSuccess)
+    {
+        <div class="alert alert-success mt-3">Przychód został dodany!</div>
+    }
+</div>
+
+@code {
+    private Transaction transaction = new() { IsIncome = true};
+    private bool showSuccess = false;
+    
+    private async Task AddIncome()
+    {
+        transaction.Date = DateTime.Now;
+        transaction.CategoryType = CashCategory.Delivery;
+        await TransactionService.AddTransactionAsync(transaction);
+        showSuccess = true;
+        transaction = new() { IsIncome = true};
+        
+        await Task.Delay(1000);
+        Navigation.NavigateTo("/");
+    }
+}
