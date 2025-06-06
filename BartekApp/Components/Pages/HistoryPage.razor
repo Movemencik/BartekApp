@@ -4,6 +4,8 @@
 @using BartekApp.Enums
 @using Transaction = BartekApp.Models.Transaction
 @inject TransactionService TransactionService
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
 
 
 <div class="container mt-3">
@@ -55,8 +57,16 @@
                 <td class="@(transaction.IsIncome ? "text-success" : "text-danger")">
                     @transaction.Amount.ToString("C")
                 </td>
+                <td>
+                    <div class="d-flex flex-column" style="gap: 10px; width: 55px;">
+                        <button class="btn btn-sm btn-primary" @onclick="() => EditTransaction(transaction.Id)">Edytuj</button>
+                        <button class="btn btn-danger" @onclick="() => DeleteTransactionWithConfirmation(transaction.Id)">Usuń</button>
+                    </div>
+                    
+                </td>
             </tr>
         }
+
         </tbody>
     </table>
 </div>
@@ -65,6 +75,9 @@
 @code {
     private ObservableCollection<Transaction> transactions = new();
     private bool showAll = true;
+    
+    private bool showModal = false;
+    private int transactionIdToDelete;
     
     protected override async Task OnInitializedAsync()
     {
@@ -82,5 +95,24 @@
     {
         showAll = category == null;
         transactions = await TransactionService.GetTransactionsVAsync(category);
+    }
+    
+    private void EditTransaction(int id)
+    {
+        Navigation.NavigateTo($"/EditTransactionPage/{id}");
+    }
+    private async Task DeleteTransaction(int id)
+    {
+        await TransactionService.DeleteTransactionAsync(id);
+        transactions.Remove(transactions.FirstOrDefault(t => t.Id == id));
+    }
+    private async Task DeleteTransactionWithConfirmation(int transactionId)
+    {
+        bool confirmDelete = await JS.InvokeAsync<bool>("confirm", "Czy chcesz usunąć tę transakcję?");
+    
+        if (confirmDelete)
+        {
+            await DeleteTransaction(transactionId);
+        }
     }
 }

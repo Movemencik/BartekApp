@@ -19,6 +19,11 @@
             <ValidationMessage For="@(() => transaction.Amount)" />
         </div>
         
+        <div class="mb-3">
+            <label for="date" class="form-label">Data</label>
+            <InputDate class="form-control" @bind-Value="date" />
+        </div>
+        
         <button type="submit" class="btn btn-primary">Dodaj przychód</button>
         <a href="/" class="btn btn-secondary ms-2">Wróć</a>
     </EditForm>
@@ -32,10 +37,11 @@
 @code {
     private Transaction transaction = new() { IsIncome = true, ToBalance = false};
     private bool showSuccess = false;
+    private DateTime date = DateTime.Now;
     
     private async Task AddIncome()
     {
-        transaction.Date = DateTime.Now;
+        transaction.Date = date;
         transaction.CategoryType = CashCategory.CashRegister;
         await TransactionService.AddTransactionAsync(transaction);
         showSuccess = true;

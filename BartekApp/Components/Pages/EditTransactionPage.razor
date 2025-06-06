@@ -1,0 +1,64 @@
+﻿@page "/EditTransactionPage/{id:int}"
+@using BartekApp.Data
+@using BartekApp.Models
+@inject TransactionService TransactionService
+@inject NavigationManager Navigation
+
+<div class="container mt-3">
+    <h2 class="mb-4">Edytuj transakcję</h2>
+    
+    <EditForm Model="@transaction" OnValidSubmit="@SaveChangesAsync">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+        
+        <div class="mb-3">
+            <label for="amount" class="form-label">Kwota *</label>
+            <InputNumber class="form-control" id="amount" @bind-Value="transaction.Amount" step="0.01" min="0" />
+            <ValidationMessage For="@(() => transaction.Amount)" />
+        </div>
+        
+        <div class="mb-3">
+            <label for="date" class="form-label">Data</label>
+            <InputDate class="form-control" @bind-Value="transaction.Date" />
+        </div>
+        
+        <button type="submit" class="btn btn-primary">Edytuj</button>
+        <a href="/HistoryPage" class="btn btn-secondary ms-2">Wróć</a>
+    </EditForm>
+    
+    @if (showSuccess)
+    {
+        <div class="alert alert-success mt-3">Edycja udana!</div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    bool isLoading = true;
+    private Transaction transaction;
+
+    bool isSaving = false;
+    
+    bool showSuccess = false;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        transaction = await TransactionService.GetTransactionByIdAsync(Id);
+        isLoading = false;
+    }
+    
+    private async Task SaveChangesAsync()
+    {
+        
+        isSaving = true;
+        await TransactionService.UpdateTransactionAsync(transaction);
+        showSuccess = true;
+        isSaving = false;
+        
+        await Task.Delay(1000);
+        Navigation.NavigateTo("/");
+        
+    }
+}

@@ -4,7 +4,7 @@
     <selectionStates>
       <SelectionState runConfigName="BartekApp">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2025-06-05T13:42:04.455857400Z">
+        <DropdownSelection timestamp="2025-06-05T15:19:57.537197800Z">
           <Target type="DEFAULT_BOOT">
             <handle>
               <DeviceId pluginId="LocalEmulator" identifier="path=C:\Users\gibal\.android\avd\Pixel_8.avd" />

@@ -26,6 +26,25 @@ public class TransactionService
         await _context.SaveChangesAsync();
     }
     
+    public async Task UpdateTransactionAsync(Transaction transaction)
+    {
+        _context.Transactions.Update(transaction);
+        await _context.SaveChangesAsync();
+    }
+    
+    public async Task DeleteTransactionAsync(int transaction)
+    {
+        var transactionToDelete = _context.Transactions.FirstOrDefault(x => x.Id == transaction);
+        if (transactionToDelete != null) _context.Transactions.Remove(transactionToDelete);
+        await _context.SaveChangesAsync();
+    }
+    
+    public async Task<Transaction?> GetTransactionByIdAsync(int id)
+    {
+        var transaction = await _context.Transactions.FirstOrDefaultAsync(x => x.Id == id);
+        return transaction;
+    }
+    
     public async Task<ObservableCollection<Transaction>> GetTransactionsAsync(bool? isIncome = null)
     {
         var query = _context.Transactions.AsQueryable();
