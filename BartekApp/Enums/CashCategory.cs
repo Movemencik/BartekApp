@@ -6,5 +6,6 @@ public enum CashCategory
     Delivery,
     CashRegister,
     Expenses,
-    EmployeeSalary
+    EmployeeSalary,
+    CardPayments
 }

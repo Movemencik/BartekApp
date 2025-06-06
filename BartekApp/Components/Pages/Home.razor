@@ -13,6 +13,10 @@
             <h4 class="flex-grow-0 ms-2"> @(pianino.ToString("C"))</h4>
         </div>
         <div class="d-flex flex-row,  align-items-center">
+            <a href="/CardPaymentsPage" class="btn btn-success flex-grow-1">Karta</a>
+            <h4 class="flex-grow-0 ms-2"> @(card.ToString("C"))</h4>
+        </div>
+        <div class="d-flex flex-row,  align-items-center">
             <a href="/DeliveryPage" class="btn btn-success flex-grow-1">Dowozy</a>
             <h4 class="flex-grow-0 ms-2"> @(delivery.ToString("C"))</h4>
         </div>
@@ -39,6 +43,7 @@
     private decimal income;
     private decimal costs;
     private decimal employee;
+    private decimal card;
 
     protected override async Task OnInitializedAsync()
     {
@@ -48,6 +53,7 @@
         income = await TransactionService.GetIncomeAsync();
         costs = await TransactionService.GetCostsAsync();
         employee = await TransactionService.GetEmployeeAsync();
+        card = await TransactionService.GetCardPaymentsAsync();
     }
     
 }

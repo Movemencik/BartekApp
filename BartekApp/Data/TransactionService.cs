@@ -118,4 +118,12 @@ public class TransactionService
             .SumAsync(t => t.Amount);
         return employeeTransactions;
     }
+
+    public async Task<decimal> GetCardPaymentsAsync()
+    {
+        var cardPayments = await _context.Transactions
+            .Where(t => t.CategoryType == CashCategory.CardPayments)
+            .SumAsync(t => t.Amount);
+        return cardPayments;
+    }
 }
