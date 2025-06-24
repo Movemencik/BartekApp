@@ -78,52 +78,21 @@ public class TransactionService
             
         return incomes - expenses;
     }
-
-    public async Task<decimal> GetCostsAsync()
+    
+    public async Task<List<CategorySummary>> GetAllCategorySumsAsync()
     {
-        var expenses = await _context.Transactions
-            .Where(t => t.CategoryType == CashCategory.Expenses)
-            .SumAsync(t => t.Amount);
-        return expenses;
+        // SQLite-net-pcl tłumaczy to na zapytanie SQL z GROUP BY
+        var summaries = await _context.Transactions
+            .GroupBy(t => t.CategoryType)
+            .Select(g => new CategorySummary
+            {
+                CategoryType = (CashCategory)g.Key,
+                TotalAmount = g.Sum(t => t.Amount)
+            })
+            .OrderBy(s => s.CategoryType)
+            .ToListAsync();
+
+        return summaries;
     }
 
-    public async Task<decimal> GetCashRegisterAsync()
-    {
-        var cashRegisterTransactions = await _context.Transactions
-            .Where(t => t.CategoryType == CashCategory.CashRegister)
-            .SumAsync(t => t.Amount);
-        return cashRegisterTransactions;
-    }
-
-    public async Task<decimal> GetDeliveryAsync()
-    {
-        var deliveryTransactions = await _context.Transactions
-            .Where(t => t.CategoryType == CashCategory.Delivery)
-            .SumAsync(t => t.Amount);
-        return deliveryTransactions;
-    }
-
-    public async Task<decimal> GetIncomeAsync()
-    {
-        var incomeTransactions = await _context.Transactions
-            .Where(t => t.CategoryType == CashCategory.Selling)
-            .SumAsync(t => t.Amount);
-        return incomeTransactions;
-    }
-
-    public async Task<decimal> GetEmployeeAsync()
-    {
-        var employeeTransactions = await _context.Transactions
-            .Where(t => t.CategoryType == CashCategory.EmployeeSalary)
-            .SumAsync(t => t.Amount);
-        return employeeTransactions;
-    }
-
-    public async Task<decimal> GetCardPaymentsAsync()
-    {
-        var cardPayments = await _context.Transactions
-            .Where(t => t.CategoryType == CashCategory.CardPayments)
-            .SumAsync(t => t.Amount);
-        return cardPayments;
-    }
 }

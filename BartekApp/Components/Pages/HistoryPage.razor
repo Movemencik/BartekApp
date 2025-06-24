@@ -22,9 +22,10 @@
             <button class="btn btn-danger, btn-outline-danger" @onclick="() => FilterTransactions(false)">Wydatki</button>
         </div>
         <div class="btn-group mb-4 d-flex flex-wrap flex-grow-1">
-            <button class="btn btn-success, btn-outline-success" @onclick="() => FilterTransactionsV(CashCategory.Selling)">Przychody</button>
-            <button class="btn btn-success, btn-outline-success" @onclick="() => FilterTransactionsV(CashCategory.Delivery)">Dowozy</button>
             <button class="btn btn-success, btn-outline-success" @onclick="() => FilterTransactionsV(CashCategory.CashRegister)">Pianino</button>
+            <button class="btn btn-success, btn-outline-success" @onclick="() => FilterTransactionsV(CashCategory.CardPayments)">Karta</button>
+            <button class="btn btn-success, btn-outline-success" @onclick="() => FilterTransactionsV(CashCategory.Delivery)">Dowozy</button>
+            <button class="btn btn-success, btn-outline-success" @onclick="() => FilterTransactionsV(CashCategory.Selling)">Przychody</button>
             <button class="btn btn-danger, btn-outline-danger" @onclick="() => FilterTransactionsV(CashCategory.Expenses)">Wydatki</button>
             <button class="btn btn-danger, btn-outline-danger" @onclick="() => FilterTransactionsV(CashCategory.EmployeeSalary)">Pracownik</button>
         </div>
@@ -45,13 +46,33 @@
             <tr>
                 <td>@transaction.Date.ToShortDateString()</td>
                 <td>
-                    @if (transaction.IsIncome)
+                    @if (transaction.CategoryType == CashCategory.Selling)
                     {
-                        <span class="badge bg-success">Przychód</span>
+                        <span class="badge bg-success">Sprzedaż</span>
+                    }
+                    else if (transaction.CategoryType == CashCategory.Delivery)
+                    {
+                        <span class="badge bg-success">Dowozy</span>
+                    }
+                    else if (transaction.CategoryType == CashCategory.CashRegister)
+                    {
+                        <span class="badge bg-success">Pianino</span>
+                    }
+                    else if (transaction.CategoryType == CashCategory.Expenses)
+                    {
+                        <span class="badge bg-danger">Wydatki</span>
+                    }
+                    else if (transaction.CategoryType == CashCategory.EmployeeSalary)
+                    {
+                        <span class="badge bg-danger">Pracownik</span>
+                    }
+                    else if (transaction.CategoryType == CashCategory.CardPayments)
+                    {
+                        <span class="badge bg-success">Karta</span>
                     }
                     else
                     {
-                        <span class="badge bg-danger">Wydatek</span>
+                        <span class="badge bg-secondary">Inny</span>
                     }
                 </td>
                 <td class="@(transaction.IsIncome ? "text-success" : "text-danger")">

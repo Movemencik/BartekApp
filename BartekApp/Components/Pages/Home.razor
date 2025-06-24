@@ -1,59 +1,50 @@
 ﻿@page "/"
 @using BartekApp.Data
+@using BartekApp.Enums
+@using BartekApp.Models
+@using Microsoft.Maui.Layouts
 @inject TransactionService TransactionService
 
 <div class="d-flex flex-column align-items-center mt-5" style="margin: 20px;">
     <div class="mb-4 text-center">
         <h3>Saldo: @(balance.ToString("C"))</h3>
     </div>
-    
     <div class="d-flex flex-column" style="gap: 20px; width: 300px;">
-        <div class="d-flex flex-row,  align-items-center">
+        <div class="d-flex flex-row align-items-center">
             <a href="/CashRegisterPage" class="btn btn-success flex-grow-1">Ż-Pianino</a>
-            <h4 class="flex-grow-0 ms-2"> @(pianino.ToString("C"))</h4>
+            <h4 class="flex-grow-0 ms-2"> @(getA.FirstOrDefault(x => x.CategoryType == CashCategory.CashRegister)?.TotalAmount.ToString("C") ?? "0,00")</h4>
         </div>
-        <div class="d-flex flex-row,  align-items-center">
+        <div class="d-flex flex-row align-items-center">
             <a href="/CardPaymentsPage" class="btn btn-success flex-grow-1">Karta</a>
-            <h4 class="flex-grow-0 ms-2"> @(card.ToString("C"))</h4>
+            <h4 class="flex-grow-0 ms-2"> @(getA.FirstOrDefault(x => x.CategoryType == CashCategory.CardPayments)?.TotalAmount.ToString("C") ?? "0,00")</h4>
         </div>
-        <div class="d-flex flex-row,  align-items-center">
+        <div class="d-flex flex-row align-items-center">
             <a href="/DeliveryPage" class="btn btn-success flex-grow-1">Dowozy</a>
-            <h4 class="flex-grow-0 ms-2"> @(delivery.ToString("C"))</h4>
+            <h4 class="flex-grow-0 ms-2"> @(getA.FirstOrDefault(x => x.CategoryType == CashCategory.Delivery)?.TotalAmount.ToString("C") ?? "0,00")</h4>
         </div>
-        <div class="d-flex flex-row,  align-items-center">
+        <div class="d-flex flex-row align-items-center">
             <a href="/IncomePage" class="btn btn-success flex-grow-1">Przychody</a>
-            <h4 class="flex-grow-0 ms-2"> @(income.ToString("C"))</h4>
+            <h4 class="flex-grow-0 ms-2"> @(getA.FirstOrDefault(x => x.CategoryType == CashCategory.Selling)?.TotalAmount.ToString("C") ?? "0,00")</h4>
         </div>
-        <div class="d-flex flex-row,  align-items-center">
+        <div class="d-flex flex-row align-items-center">
             <a href="/CostsPage" class="btn btn-danger flex-grow-1">Wydatki</a>
-            <h4 class="flex-grow-0 ms-2"> @(costs.ToString("C"))</h4>
+            <h4 class="flex-grow-0 ms-2"> @(getA.FirstOrDefault(x => x.CategoryType == CashCategory.Expenses)?.TotalAmount.ToString("C") ?? "0,00")</h4>
         </div>
-        <div class="d-flex flex-row,  align-items-center">
+        <div class="d-flex flex-row align-items-center">
             <a href="/EmployeePage" class="btn btn-danger flex-grow-1">Pracownik</a>
-            <h4 class="flex-grow-0 ms-2"> @(employee.ToString("C"))</h4>
+            <h4 class="flex-grow-0 ms-2"> @(getA.FirstOrDefault(x => x.CategoryType == CashCategory.EmployeeSalary)?.TotalAmount.ToString("C") ?? "0,00")</h4>
         </div>
-        <a href="/HistoryPage" class="btn btn-info">Historia</a>
+        <a href="/HistoryPage" class="btn btn-info flex-grow-1">Historia</a>
     </div>
 </div>
 
 @code {
     private decimal balance;
-    private decimal pianino;
-    private decimal delivery;
-    private decimal income;
-    private decimal costs;
-    private decimal employee;
-    private decimal card;
+    public List<CategorySummary> getA { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
         balance = await TransactionService.GetBalanceAsync();
-        pianino = await TransactionService.GetCashRegisterAsync();
-        delivery = await TransactionService.GetDeliveryAsync();
-        income = await TransactionService.GetIncomeAsync();
-        costs = await TransactionService.GetCostsAsync();
-        employee = await TransactionService.GetEmployeeAsync();
-        card = await TransactionService.GetCardPaymentsAsync();
+        getA = await TransactionService.GetAllCategorySumsAsync();
     }
-    
 }
