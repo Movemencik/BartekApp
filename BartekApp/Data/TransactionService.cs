@@ -66,18 +66,7 @@ public class TransactionService
         return new ObservableCollection<Transaction>(transactions);
     }
     
-    public async Task<decimal> GetBalanceAsync()
-    {
-        var incomes = await _context.Transactions
-            .Where(t => t.IsIncome && t.ToBalance == true)
-            .SumAsync(t => t.Amount);
-            
-        var expenses = await _context.Transactions
-            .Where(t => !t.IsIncome)
-            .SumAsync(t => t.Amount);
-            
-        return incomes - expenses;
-    }
+    
     
     public async Task<List<CategorySummary>> GetAllCategorySumsAsync()
     {
@@ -95,4 +84,29 @@ public class TransactionService
         return summaries;
     }
 
+    public async Task<decimal> GetBalanceForMonthAsync(int year, int month)
+    {
+        var incomes = await _context.Transactions
+            .Where(t => t.IsIncome && t.ToBalance == true && t.Date.Year == year && t.Date.Month == month)
+            .SumAsync(t => t.Amount);
+            
+        var expenses = await _context.Transactions
+            .Where(t => !t.IsIncome && t.Date.Year == year && t.Date.Month == month)
+            .SumAsync(t => t.Amount);
+            
+        return incomes - expenses;
+    }
+    public async Task<List<CategorySummary>> GetCategorySumsForMonthAsync(int year, int month)
+    {
+        var transactions = await GetTransactionsAsync();
+        return transactions
+            .Where(t => t.Date.Year == year && t.Date.Month == month)
+            .GroupBy(t => t.CategoryType)
+            .Select(g => new CategorySummary
+            {
+                CategoryType = (CashCategory)g.Key,
+                TotalAmount = g.Sum(t => t.Amount)
+            })
+            .ToList();
+    }
 }

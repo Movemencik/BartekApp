@@ -2,7 +2,6 @@
 @using BartekApp.Data
 @using BartekApp.Enums
 @using BartekApp.Models
-@using Microsoft.Maui.Layouts
 @inject TransactionService TransactionService
 
 <div class="d-flex flex-column align-items-center mt-5" style="margin: 20px;">
@@ -37,14 +36,15 @@
         <a href="/HistoryPage" class="btn btn-info flex-grow-1">Historia</a>
     </div>
 </div>
-
+`
 @code {
     private decimal balance;
     public List<CategorySummary> getA { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
-        balance = await TransactionService.GetBalanceAsync();
-        getA = await TransactionService.GetAllCategorySumsAsync();
+        var now = DateTime.Now;
+        balance = await TransactionService.GetBalanceForMonthAsync(now.Year, now.Month);
+        getA = await TransactionService.GetCategorySumsForMonthAsync(now.Year, now.Month);
     }
 }
