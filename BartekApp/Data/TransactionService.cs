@@ -109,4 +109,23 @@ public class TransactionService
             })
             .ToList();
     }
+    
+    public async Task<ObservableCollection<Transaction>> GetTransactionsForPeriodAsync(DateTime from, DateTime to)
+    {
+        var transactions = await GetTransactionsAsync();
+        return new ObservableCollection<Transaction>(
+            transactions.Where(t => t.Date.Date >= from.Date && t.Date.Date <= to.Date)
+        );
+    }
+    
+    public async Task<decimal> GetBalanceForPeriodAsync(DateTime from, DateTime to)
+    {
+        var incomes = await _context.Transactions
+            .Where(t => t.IsIncome && t.ToBalance == true && t.Date.Date >= from.Date && t.Date.Date <= to.Date)
+            .SumAsync(t => t.Amount);
+        var expenses = await _context.Transactions
+            .Where(t => !t.IsIncome && t.Date.Date >= from.Date && t.Date.Date <= to.Date)
+            .SumAsync(t => t.Amount);
+        return incomes - expenses;
+    }
 }

@@ -10,123 +10,177 @@
 
 <div class="container mt-3">
     <h2 class="mb-4">Historia transakcji</h2>
-    
+
     <div class="mb-3">
         <a href="/" class="btn btn-secondary">Wróć</a>
     </div>
-    
-    <div class="d-flex flex-wrap">
-        <div class="btn-group mb-4 flex-grow-1">
-            <button class="btn btn-primary, btn-outline-primary" @onclick="() => FilterTransactions(null)">Wszystkie</button>
-            <button class="btn btn-success, btn-outline-success" @onclick="() => FilterTransactions(true)">Przychody</button>
-            <button class="btn btn-danger, btn-outline-danger" @onclick="() => FilterTransactions(false)">Wydatki</button>
+
+    <div class="mb-3 d-flex flex-wrap align-items-center gap-2">
+        <label class="form-label mb-0">Zakres dat:</label>
+        <select @bind="selectedRange" @bind:after="HandleRangeChanged" class="form-select w-auto">
+            <option value="Today">Dzisiaj</option>
+            <option value="ThisWeek">Ten tydzień</option>
+            <option value="ThisMonth">Ten miesiąc</option>
+            <option value="ThisYear">Ten rok</option>
+            <option value="Custom">Własny zakres</option>
+        </select>
+        @if (selectedRange == DateRangeType.Custom)
+        {
+            <div class="d-flex flex-wrap gap-2 align-items-center">
+                <input type="date" @bind="customFrom" class="form-control w-auto"/>
+                <span>-</span>
+                <input type="date" @bind="customTo" class="form-control w-auto"/>
+                <button class="btn btn-primary" @onclick="ApplyCustomRange">Filtruj</button>
+            </div>
+        }
+        <span class="ms-md-auto fw-bold mt-2 mt-md-0 fs-4">Balans: <span class="@(balance >= 0 ? "text-success" : "text-danger")">@balance.ToString("C")</span></span>
+    </div>
+
+    <div class="d-flex flex-column flex-md-row gap-3 mb-4">
+        <div class="btn-group flex-wrap">
+            <button class="btn btn-outline-primary" @onclick="() => SetIncomeFilter(null)">Wszystkie</button>
+            <button class="btn btn-outline-success" @onclick="() => SetIncomeFilter(true)">Przychody</button>
+            <button class="btn btn-outline-danger" @onclick="() => SetIncomeFilter(false)">Wydatki</button>
         </div>
-        <div class="btn-group mb-4 d-flex flex-wrap flex-grow-1">
-            <button class="btn btn-success, btn-outline-success" @onclick="() => FilterTransactionsV(CashCategory.CashRegister)">Pianino</button>
-            <button class="btn btn-success, btn-outline-success" @onclick="() => FilterTransactionsV(CashCategory.CardPayments)">Karta</button>
-            <button class="btn btn-success, btn-outline-success" @onclick="() => FilterTransactionsV(CashCategory.Delivery)">Dowozy</button>
-            <button class="btn btn-success, btn-outline-success" @onclick="() => FilterTransactionsV(CashCategory.Selling)">Przychody</button>
-            <button class="btn btn-danger, btn-outline-danger" @onclick="() => FilterTransactionsV(CashCategory.Expenses)">Wydatki</button>
-            <button class="btn btn-danger, btn-outline-danger" @onclick="() => FilterTransactionsV(CashCategory.EmployeeSalary)">Pracownik</button>
+        <div class="btn-group flex-wrap">
+            <button class="btn btn-outline-success" @onclick="() => SetCategoryFilter(CashCategory.CashRegister)">Pianino</button>
+            <button class="btn btn-outline-success" @onclick="() => SetCategoryFilter(CashCategory.CardPayments)">Karta</button>
+            <button class="btn btn-outline-success" @onclick="() => SetCategoryFilter(CashCategory.Delivery)">Dowozy</button>
+            <button class="btn btn-outline-success" @onclick="() => SetCategoryFilter(CashCategory.Selling)">Przychody</button>
+            <button class="btn btn-outline-danger" @onclick="() => SetCategoryFilter(CashCategory.Expenses)">Wydatki</button>
+            <button class="btn btn-outline-danger" @onclick="() => SetCategoryFilter(CashCategory.EmployeeSalary)">Pracownik</button>
         </div>
     </div>
     
-    
-    <table class="table">
-        <thead>
-        <tr>
-            <th>Data</th>
-            <th>Typ</th>
-            <th>Kwota</th>
-        </tr>
-        </thead>
-        <tbody>
-        @foreach (var transaction in transactions)
-        {
-            <tr>
-                <td>@transaction.Date.ToShortDateString()</td>
-                <td>
-                    @if (transaction.CategoryType == CashCategory.Selling)
-                    {
-                        <span class="badge bg-success">Sprzedaż</span>
-                    }
-                    else if (transaction.CategoryType == CashCategory.Delivery)
-                    {
-                        <span class="badge bg-success">Dowozy</span>
-                    }
-                    else if (transaction.CategoryType == CashCategory.CashRegister)
-                    {
-                        <span class="badge bg-success">Pianino</span>
-                    }
-                    else if (transaction.CategoryType == CashCategory.Expenses)
-                    {
-                        <span class="badge bg-danger">Wydatki</span>
-                    }
-                    else if (transaction.CategoryType == CashCategory.EmployeeSalary)
-                    {
-                        <span class="badge bg-danger">Pracownik</span>
-                    }
-                    else if (transaction.CategoryType == CashCategory.CardPayments)
-                    {
-                        <span class="badge bg-success">Karta</span>
-                    }
-                    else
-                    {
-                        <span class="badge bg-secondary">Inny</span>
-                    }
-                </td>
-                <td class="@(transaction.IsIncome ? "text-success" : "text-danger")">
-                    @transaction.Amount.ToString("C")
-                </td>
-                <td>
-                    <div class="d-flex flex-column" style="gap: 10px; width: 55px;">
-                        <button class="btn btn-sm btn-primary" @onclick="() => EditTransaction(transaction.Id)">Edytuj</button>
-                        <button class="btn btn-danger" @onclick="() => DeleteTransactionWithConfirmation(transaction.Id)">Usuń</button>
-                    </div>
-                    
-                </td>
-            </tr>
-        }
+    <div class="d-flex justify-content-start align-items-center mb-2">
+        <div>
+            <label for="pageSizeSelect" class="form-label me-2">Pokaż na stronie:</label>
+            <select id="pageSizeSelect" @bind="pageSize" @bind:after="OnPageSizeChanged" class="form-select w-auto d-inline-block">
+                <option value="15">15</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+            </select>
+        </div>
+    </div>
 
-        </tbody>
-    </table>
-</div>
+
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+            <tr>
+                <th>Data</th>
+                <th>Typ</th>
+                <th>Kwota</th>
+                <th>Akcje</th>
+            </tr>
+            </thead>
+            <tbody>
+            @foreach (var transaction in pagedTransactions)
+            {
+                <tr>
+                    <td>@transaction.Date.ToShortDateString()</td>
+                    <td>
+                        @if (transaction.CategoryType == CashCategory.Selling)
+                        {
+                            <span class="badge bg-success">Sprzedaż</span>
+                        }
+                        else if (transaction.CategoryType == CashCategory.Delivery)
+                        {
+                            <span class="badge bg-success">Dowozy</span>
+                        }
+                        else if (transaction.CategoryType == CashCategory.CashRegister)
+                        {
+                            <span class="badge bg-success">Pianino</span>
+                        }
+                        else if (transaction.CategoryType == CashCategory.Expenses)
+                        {
+                            <span class="badge bg-danger">Wydatki</span>
+                        }
+                        else if (transaction.CategoryType == CashCategory.EmployeeSalary)
+                        {
+                            <span class="badge bg-danger">Pracownik</span>
+                        }
+                        else if (transaction.CategoryType == CashCategory.CardPayments)
+                        {
+                            <span class="badge bg-success">Karta</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary">Inny</span>
+                        }
+                    </td>
+                    <td class="@(transaction.IsIncome ? "text-success" : "text-danger")">
+                        @transaction.Amount.ToString("C")
+                    </td>
+                    <td>
+                        <div class="d-flex flex-column" style="gap: 10px;">
+                            <button class="btn btn-sm btn-primary" @onclick="() => EditTransaction(transaction.Id)">Edytuj</button>
+                            <button class="btn btn-sm btn-danger" @onclick="() => DeleteTransactionWithConfirmation(transaction.Id)">Usuń</button>
+                        </div>
+
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
     
+    <div class="d-flex justify-content-center align-items-center mt-3" style="margin: 20px;">
+        <button class="btn btn-secondary" @onclick="PreviousPage" disabled="@(currentPage == 1)">Poprzednia</button>
+        <span class="mx-3">Strona @currentPage z @totalPages</span>
+        <button class="btn btn-secondary" @onclick="NextPage" disabled="@(currentPage >= totalPages)">Następna</button>
+    </div>
+</div>
+
 
 @code {
-    private ObservableCollection<Transaction> transactions = new();
-    private bool showAll = true;
+    private List<Transaction> allTransactionsForPeriod = new();
+    private List<Transaction> filteredTransactions = new();
+    private ObservableCollection<Transaction> pagedTransactions = new();
+
+    private int currentPage = 1;
+    private int pageSize = 25;
+    private int totalPages => filteredTransactions.Any() ? (int)Math.Ceiling(filteredTransactions.Count / (double)pageSize) : 1;
     
-    private bool showModal = false;
-    private int transactionIdToDelete;
+    private bool? incomeFilter = null;
+    private CashCategory? categoryFilter = null;
     
     protected override async Task OnInitializedAsync()
     {
-        await FilterTransactions(null);
-        await FilterTransactionsV(null);
+        await LoadDataAsync();
     }
     
-    private async Task FilterTransactions(bool? isIncome)
+    private void SetIncomeFilter(bool? isIncome)
     {
-        showAll = isIncome == null;
-        transactions = await TransactionService.GetTransactionsAsync(isIncome);
+        incomeFilter = isIncome;
+        categoryFilter = null; 
+        ApplyFiltersAndPagination();
     }
-    
-    private async Task FilterTransactionsV(CashCategory? category)
+
+    private void SetCategoryFilter(CashCategory? category)
     {
-        showAll = category == null;
-        transactions = await TransactionService.GetTransactionsVAsync(category);
+        categoryFilter = category;
+        incomeFilter = null;
+        ApplyFiltersAndPagination();
     }
     
     private void EditTransaction(int id)
     {
         Navigation.NavigateTo($"/EditTransactionPage/{id}");
     }
+    
     private async Task DeleteTransaction(int id)
     {
         await TransactionService.DeleteTransactionAsync(id);
-        transactions.Remove(transactions.FirstOrDefault(t => t.Id == id));
+        var transactionToRemove = allTransactionsForPeriod.FirstOrDefault(t => t.Id == id);
+        if (transactionToRemove != null)
+        {
+            allTransactionsForPeriod.Remove(transactionToRemove);
+        }
+        ApplyFiltersAndPagination();
     }
+    
     private async Task DeleteTransactionWithConfirmation(int transactionId)
     {
         bool confirmDelete = await JS.InvokeAsync<bool>("confirm", "Czy chcesz usunąć tę transakcję?");
@@ -135,5 +189,95 @@
         {
             await DeleteTransaction(transactionId);
         }
+    }
+    
+    private DateRangeType selectedRange = DateRangeType.ThisMonth;
+    private DateTime customFrom = DateTime.Today;
+    private DateTime customTo = DateTime.Today;
+    private decimal balance;
+    
+    
+    private async Task LoadDataAsync()
+    {
+        (DateTime from, DateTime to) = GetDateRange();
+        var allData = await TransactionService.GetTransactionsForPeriodAsync(from, to);
+        allTransactionsForPeriod = allData.OrderByDescending(t => t.Date).ThenByDescending(t => t.Id).ToList();
+        balance = await TransactionService.GetBalanceForPeriodAsync(from, to);
+        ApplyFiltersAndPagination();
+    }
+
+    private void ApplyFiltersAndPagination()
+    {
+        IEnumerable<Transaction> currentFilter = allTransactionsForPeriod;
+        if (incomeFilter.HasValue)
+        {
+            currentFilter = currentFilter.Where(t => t.IsIncome == incomeFilter.Value);
+        }
+        if (categoryFilter.HasValue)
+        {
+            currentFilter = currentFilter.Where(t => t.CategoryType == categoryFilter.Value);
+        }
+        filteredTransactions = currentFilter.ToList();
+        
+        currentPage = 1;
+        UpdateDisplayedTransactions();
+    }
+
+    private void UpdateDisplayedTransactions()
+    {
+        var pagedData = filteredTransactions
+            .Skip((currentPage - 1) * pageSize)
+            .Take(pageSize)
+            .ToList();
+        pagedTransactions = new ObservableCollection<Transaction>(pagedData);
+        StateHasChanged();
+    }
+
+    private void PreviousPage()
+    {
+        if (currentPage > 1)
+        {
+            currentPage--;
+            UpdateDisplayedTransactions();
+        }
+    }
+
+    private void NextPage()
+    {
+        if (currentPage < totalPages)
+        {
+            currentPage++;
+            UpdateDisplayedTransactions();
+        }
+    }
+
+    private void OnPageSizeChanged()
+    {
+        ApplyFiltersAndPagination();
+    }
+
+    private (DateTime, DateTime) GetDateRange()
+    {
+        var today = DateTime.Today;
+        return selectedRange switch
+        {
+            DateRangeType.Today => (today, today),
+            DateRangeType.ThisWeek => (today.AddDays(-(int) today.DayOfWeek + 1), today),
+            DateRangeType.ThisMonth => (new DateTime(today.Year, today.Month, 1), today),
+            DateRangeType.ThisYear => (new DateTime(today.Year, 1, 1), today),
+            DateRangeType.Custom => (customFrom, customTo),
+            _ => (today, today)
+        };
+    }
+    
+    private async Task HandleRangeChanged()
+    {
+        if (selectedRange != DateRangeType.Custom)
+            await LoadDataAsync();
+    }
+    
+    private async Task ApplyCustomRange()
+    {
+        await LoadDataAsync();
     }
 }
